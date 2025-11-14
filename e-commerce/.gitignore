@@ -38,3 +38,4 @@ __screenshots__/
 test-results/
 playwright-report/
 node_modules/
+simple_backend/
