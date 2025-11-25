@@ -1,63 +1,102 @@
 <template>
   <div
-    class="flex flex-col md:flex-row justify-between items-center rounded-xl p-6 shadow-md hover:shadow-xl hover:scale-[1.02] transition-all duration-300 gap-6 md:gap-10"
-    :style="{ color, backgroundColor: color || '#FFFFFF' }"
+    class="promotion-card group flex flex-col md:flex-row justify-between items-center rounded-2xl p-6 shadow-lg hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 gap-6 md:gap-8 border border-gray-200 min-h-[280px] overflow-hidden"
+    :style="{ backgroundColor: color }"
   >
-    <div class="w-full md:w-1/2 space-y-4 text-center md:text-left">
-      <h2 class="text-2xl font-semibold text-gray-800">{{ title }}</h2>
+    <!-- Text Content -->
+    <div class="w-full md:w-1/2 space-y-6 text-center md:text-left flex flex-col justify-center">
+      <h2 class="text-2xl md:text-3xl font-bold text-gray-900 leading-tight">
+        {{ title }}
+      </h2>
 
       <button
-        class="px-10 py-2 text-white rounded-lg transition-colors duration-300"
-        :style="{ backgroundColor: buttonColor || '#10B981' }"
-        @click="shopNow"
-        @error="handleImageError"
+        class="px-8 py-3.5 text-white rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-lg font-semibold w-fit mx-auto md:mx-0 flex items-center gap-2 group/btn"
+        :style="{ backgroundColor: buttonColor }"
+        @click="handleShopNow"
       >
-        Shop Now <i class="pi pi-arrow-right"></i>
+        Shop Now 
+        <i class="pi pi-arrow-right transition-transform duration-300 group-hover/btn:translate-x-1"></i>
       </button>
     </div>
-    <img
-      :src="getFullImageUrl(image)"
-      :alt="title"
-      class="w-full md:w-1/2 max-h-60 object-contain"
-    />
+
+    <!-- Promo Image -->
+    <div class="w-full md:w-1/2 flex justify-center">
+      <img
+        :src="effectiveImageUrl"
+        :alt="title"
+        class="max-h-60 md:max-h-72 object-contain rounded-lg transition-transform duration-500 group-hover:scale-110"
+        @error="handleImageError"
+      />
+    </div>
   </div>
 </template>
 
 <script lang="ts">
-import 'primeicons/primeicons.css'
-const FALLBACK_IMAGE = 'src/assets/imgs/default.png'
-export default {
-  name: 'ProductPromotion',
+import { defineComponent } from 'vue'
+
+interface ShopNowData {
+  title: string
+  url: string
+  buttonColor: string
+}
+
+export default defineComponent({
+  name: 'PromotionComponent',
   props: {
-    title: { type: String, required: true },
-    image: { type: String, required: true },
-    color: { type: String, default: 'bg-white' },
-    buttonColor: { type: String, default: 'bg-emeral-500' },
-    url: { type: String, default: '' },
+    title: {
+      type: String,
+      required: true
+    },
+    color: {
+      type: String,
+      default: '#FFFFFF'
+    },
+    image: {
+      type: String,
+      required: true
+    },
+    buttonColor: {
+      type: String,
+      default: '#42B678'
+    },
+    url: {
+      type: String,
+      default: ''
+    }
   },
   data() {
     return {
-      imageSource: this.image,
+      imageError: false
     }
   },
-  watch: {
-    image(newImage) {
-      this.imageSource = newImage
-    },
+  computed: {
+    effectiveImageUrl(): string {
+      if (this.imageError || !this.image) {
+        return 'https://via.placeholder.com/400x300/FFFFFF/374151?text=Promotion+Image'
+      }
+
+      if (this.image.startsWith('http') || this.image.includes('placeholder')) {
+        return this.image
+      }
+
+      return this.image
+    }
   },
   methods: {
-    shopNow() {
-      alert(`Let's shop — ${this.title}!`)
-    },
-
-    getFullImageUrl(imgPath) {
-      if (!imgPath) return ''
-      return imgPath.startsWith('http') ? imgPath : `http://localhost:3000/${imgPath}`
+    handleShopNow() {
+      const shopNowData: ShopNowData = {
+        title: this.title,
+        url: this.url,
+        buttonColor: this.buttonColor
+      }
+      this.$emit('shop-now', shopNowData)
     },
 
     handleImageError() {
-      this.imageSource = FALLBACK_IMAGE
-    },
+      console.warn('Promotion image failed to load:', this.image)
+      this.imageError = true
+    }
   },
-}
+  emits: ['shop-now']
+})
 </script>
